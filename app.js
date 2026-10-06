@@ -36,7 +36,7 @@ function insights(){return `<section class="card section"><div class="section-ti
 function distribution(){const counts={"공시 기반":0,"부분 분석":0,"공개정보 한계":0};state.data.estimates.forEach(x=>counts[x.level]++);return `<section class="card section"><div class="section-title"><div><h2>분석 수준 분포</h2><p>정량화 가능성과 판단보류를 함께 표시</p></div></div><div class="distribution"><div class="donut"><div class="donut-center"><span><b>8</b>추정 항목</span></div></div><div class="dist-list">${Object.entries(counts).map(([k,v],i)=>`<div class="dist-row"><div class="dist-label"><span>${k}</span><b>${v}</b></div><div class="bar"><i style="width:${v/8*100}%;background:${['#3348a5','#8795c8','#c4cad8'][i]}"></i></div></div>`).join('')}</div></div></section>`;}
 function estimateRows(){let rows=state.data.estimates;if(state.filter!=="All")rows=rows.filter(x=>x.priority===state.filter);return rows.map(x=>`<tr><td><span class="badge ${x.priority.toLowerCase()}">${x.priority}</span></td><td><div class="item-title">${x.title}</div><div class="item-sub">${x.category} · ${x.standard}</div></td><td>${x.amount}</td><td>${x.assumption}</td><td>${x.yoy}</td><td><span class="badge ${levelClass(x.level)}">${x.level}</span></td><td><button class="detail-btn" data-estimate="${x.id}">상세보기</button></td></tr>`).join('');}
 function table(){return `<section class="card table-card"><div class="table-head"><div><h2>주요 회계추정 목록</h2><p>금융시장 위험공시는 사전 분류에서 제외됩니다.</p></div><div class="filters">${['All','High','Medium','Low'].map(x=>`<button class="filter ${state.filter===x?'active':''}" data-filter="${x}">${x}</button>`).join('')}</div></div><div class="table-wrap"><table><thead><tr><th>중요도</th><th>회계추정 항목</th><th>관련 금액</th><th>주요 가정</th><th>전년 변화</th><th>분석 수준</th><th>상세</th></tr></thead><tbody>${estimateRows()}</tbody></table></div></section>`;}
-function overview(){return companyHero()+kpis()+`<div class="section-grid">${insights()}${distribution()}</div>`+table();}
+function overview(){return companyHero()+kpis()+`<div class="section-grid">${insights()}${distributionLive()}</div>`+table();}
 
 function mapView(){return companyHero()+`<div class="view-title"><h2>기업별 회계추정 구조</h2><p>동일한 파이프라인이 기업별 데이터를 새로 주입받는 구조입니다.</p></div><div class="pipeline">${['기업 식별','공시 수집','Estimate Discovery','Context Linking','Numeric Grounding','분석수준 판정','Estimate Map'].map((x,i)=>`<div class="pipe-step"><b>0${i+1}</b>${x}</div>`).join('')}</div><div class="map-grid">${state.data.estimates.map(x=>`<article class="card estimate-tile"><span class="badge ${levelClass(x.level)}">${x.level}</span><h3>${x.title}</h3><p>${x.subject}<br/>${x.assumption}</p><div class="tile-foot"><span class="badge ${x.priority.toLowerCase()}">${x.priority}</span><button class="detail-btn" data-estimate="${x.id}">열기</button></div></article>`).join('')}</div>`;}
 function yoyView(){return companyHero()+`<div class="view-title"><h2>Year-over-Year</h2><p>당기·전기 값이 같은 회계문맥에 연결된 경우에만 비교합니다.</p></div><div class="yoy-list">${state.data.estimates.filter(x=>x.yoy!=="제한").map(x=>`<div class="card yoy-row"><div><b>${x.title}</b><div class="item-sub">${x.category}</div></div><span>당기<br/><b>${x.current}</b></span><span>전기<br/><b>${x.previous}</b></span><span><span class="badge ${x.yoy==='비교 가능'?'disclosed':'partial'}">${x.yoy}</span></span></div>`).join('')}</div>`;}
@@ -50,7 +50,7 @@ function peerView(){return companyHero()+`<div class="view-title"><h2>Peer 비�
 function landing(){return `<section class="landing"><div class="landing-copy"><div class="eyebrow">EVIDENCE-GROUNDED ACCOUNTING AI</div><h1>숫자를 보여주는 데서 끝나지 않고,<br/><span>그 숫자를 만든 추정</span>을 연결합니다.</h1><p>기업명 또는 종목코드 하나로 중요한 회계추정, 핵심 가정, 민감도, 재무영향과 원문 근거를 하나의 Map으로 확인하세요.</p><form class="landing-search" id="landing-form"><div>${icons.search}<input id="landing-input" autofocus placeholder="LG화학 또는 051910"/></div><button>Estimate Map 생성</button></form><div class="landing-example">첫 데모 <button data-demo>051910 · LG화학</button><span>DEMO MODE</span></div></div><div class="landing-panel card"><div class="panel-top"><span>ANALYSIS PIPELINE</span><b>7 STEPS</b></div>${['DART 기업 식별','최신·전기 공시 수집','중요 추정 후보 발견','가정·금액 문맥 연결','숫자·단위·기간 검증','분석수준·판단보류','Evidence Map 생성'].map((x,i)=>`<div class="landing-step"><span>0${i+1}</span><b>${x}</b><i>${i<2?'CODE':i<4?'AI + CODE':'VALIDATE'}</i></div>`).join('')}<div class="panel-rule"><b>설계 원칙</b><span>AI는 의미를 판단하고, 코드는 숫자를 검증합니다.</span></div></div></section>`;}
 function loadingView(){return `<section class="loading-screen"><div class="loading-mark">EM</div><div><div class="eyebrow">DEMO ANALYSIS</div><h2>${esc(state.query)} 공시를 구조화하고 있습니다.</h2><p>DEMO 데이터 adapter를 통해 동일한 분석 파이프라인을 실행합니다.</p></div><div class="loading-track"><i></i></div><div class="loading-steps"><span class="done">기업 식별</span><span class="done">공시 수집</span><span class="active">문맥 연결</span><span>숫자 검증</span><span>Map 생성</span></div></section>`;}
 function landingClean(){return `<section class="landing"><div class="landing-copy"><div class="eyebrow">ACCOUNTING ESTIMATE ANALYSIS</div><h1>기업별 주요 회계추정 분석</h1><p>기업명 또는 종목코드를 입력하면 사업보고서 주석에서 주요 회계추정, 핵심 가정, 민감도, 관련 금액과 원문 근거를 연결해 보여줍니다.</p><form class="landing-search" id="landing-form"><div>${icons.search}<input id="landing-input" autofocus placeholder="기업명 또는 종목코드 입력"/></div><button>분석 시작</button></form><div class="landing-example">데모 기업 <button data-demo>051910 · LG화학</button><span>DEMO MODE</span></div></div><div class="landing-panel card"><div class="panel-top"><span>ANALYSIS PIPELINE</span><b>7 STEPS</b></div>${['DART 기업 식별','최신·전기 공시 수집','중요 추정 후보 탐색','가정·금액 문맥 연결','숫자·단위·기간 검증','분석 수준 분류','Evidence Map 생성'].map((x,i)=>`<div class="landing-step"><span>0${i+1}</span><b>${x}</b><i>${i<2?'CODE':i<4?'AI + CODE':'VALIDATE'}</i></div>`).join('')}</div></section>`;}
-function render(){let content;if(state.loading)content=loadingView();else if(!state.data)content=landingClean();else content=({overview:overview(),map:mapView(),yoy:yoyView(),sensitivity:sensitivityView(),evidence:evidenceView(),peer:peerView()})[state.view];app.innerHTML=shell(content);bind();}
+function render(){let content;if(state.loading)content=loadingView();else if(!state.data)content=landingClean();else content=({overview:overview(),map:mapView(),yoy:yoyView(),sensitivity:sensitivityViewLive(),evidence:evidenceView(),peer:peerViewLive()})[state.view];app.innerHTML=shell(content);bindLive();}
 
 function openEstimate(id){const x=state.data.estimates.find(e=>e.id===id);if(!x)return;const ev=x.evidence?.[0];openDrawer(`<div class="drawer-header"><div><span class="badge ${x.priority.toLowerCase()}">${x.priority} Review Priority</span><h2>${x.title}</h2></div><button class="close" data-close>×</button></div><div class="drawer-body"><div class="detail-grid">${[['추정대상',x.subject],['관련 금액',x.amount],['회계기준',x.standard],['주요 가정',x.assumption],['현재값',x.current],['전년값',x.previous],['YoY 변화',x.yoy],['분석 수준',x.level]].map(([a,b])=>`<div class="detail-box"><small>${a}</small><b>${b}</b></div>`).join('')}</div><div class="detail-section"><h3>Review Priority 산정 근거 · ${x.score}/8</h3><div class="score">${x.scoreReasons.map(r=>`<span>${r}</span>`).join('')}</div><p>정보이용자의 탐색 순서를 위한 지표이며 회계감사상 중요성을 의미하지 않습니다.</p></div><div class="detail-section"><h3>AI 설명</h3><p>${x.ai}</p></div><div class="detail-section"><h3>Stress Test</h3><p>${x.stress?'회사 공시 또는 공개정보 범위 안에서 제공 가능합니다.':'공개정보가 충분하지 않아 정량 Stress Test를 제공하지 않습니다.'}</p></div>${ev?`<div class="detail-section"><h3>대표 Evidence</h3><div class="evidence-quote">${markEvidence(ev)}</div><button class="detail-btn" data-evidence="${ev.id}" style="margin-top:10px">전체 근거 보기</button></div>`:''}</div>`);}
 function openEvidence(id){const e=state.data.evidenceById[id];if(!e)return;openDrawer(`<div class="drawer-header"><div><div class="eyebrow">EVIDENCE</div><h2>${e.section}</h2></div><button class="close" data-close>×</button></div><div class="drawer-body"><div class="detail-grid"><div class="detail-box"><small>출처</small><b>${e.source}</b></div><div class="detail-box"><small>검증 상태</small><b>${e.status}</b></div><div class="detail-box"><small>문단 식별자</small><b>${e.anchor}</b></div><div class="detail-box"><small>페이지</small><b>${e.page}</b></div></div><div class="detail-section"><h3>원문 Evidence</h3><div class="evidence-quote">${markEvidence(e)}</div></div><div class="demo-banner" style="margin-top:18px"><b>검증 메모</b><span>${e.caveat}</span></div><div class="detail-section"><h3>Evidence ID</h3><p>${e.id}</p></div></div>`);}
@@ -76,3 +76,75 @@ function bind(){
 
 render();
 detectRuntimeMode().then(mode=>{state.runtimeMode=mode;render()});
+
+// LIVE 수집 단계에서도 0건을 정확히 표시하도록 고정값을 사용하지 않는다.
+function distributionLive(){
+  const labels=["공시 기반","부분 분석","공개정보 한계"];
+  const counts=Object.fromEntries(labels.map(label=>[label,0]));
+  state.data.estimates.forEach(item=>{if(item.level in counts)counts[item.level]+=1});
+  const total=state.data.estimates.length;
+  return `<section class="card section"><div class="section-title"><div><h2>분석 수준 분포</h2><p>정량화 가능성과 판단보류를 함께 표시</p></div></div><div class="distribution"><div class="donut"><div class="donut-center"><span><b>${total}</b>개 항목</span></div></div><div class="dist-list">${Object.entries(counts).map(([label,value],index)=>`<div class="dist-row"><div class="dist-label"><span>${label}</span><b>${value}</b></div><div class="bar"><i style="width:${total?value/total*100:0}%;background:${['#3348a5','#8795c8','#c4cad8'][index]}"></i></div></div>`).join('')}</div></div></section>`;
+}
+
+function sensitivityViewLive(){
+  if(!state.data.estimates.length){
+    return companyHero()+`<div class="view-title"><h2>Sensitivity</h2><p>DART 공시 수집은 완료됐지만 정량 분석은 아직 생성되지 않았습니다.</p></div><section class="card s-card"><div class="level-label">공개정보 검토 중</div><h3>정량 Stress Test 준비 전</h3><div class="limit-box"><b>공시정보 기반 추정 결과가 준비되지 않았습니다.</b><br/>원문 주석에서 회사 직접 공시 민감도 또는 공개정보로 재현 가능한 계산이 확인될 때만 분석을 제공합니다.</div></section>`;
+  }
+  const up=state.scenario==='up';
+  return companyHero()+`<div class="view-title"><h2>Sensitivity</h2><p>회사가 직접 공시한 값, 제한적 재구성, 공개정보 한계를 분리합니다. 임의 숫자 입력은 허용하지 않습니다.</p></div><div class="sensitivity-grid">
+  <section class="card s-card"><div class="level-label">LEVEL A · 회사 직접 공시</div><h3>석유화학 CGU 할인율</h3><p class="desc">회사 공시의 ±0.5%p 시나리오만 선택할 수 있습니다.</p><div class="segmented"><button data-scenario="up" class="${up?'active':''}">+0.5%p</button><button data-scenario="down" class="${!up?'active':''}">−0.5%p</button></div><div class="scenario"><small>회수가능액 재무영향</small><b>${up?'−1.108조원':'+1.330조원'}</b></div><button class="detail-btn" data-evidence="ev-cgu-sensitivity">원문 근거 확인</button></section>
+  <section class="card s-card"><div class="level-label">LEVEL B · 제한적 계산</div><h3>공시정보 기반 추정</h3><p class="desc">공식과 입력값이 모두 공개된 항목에서만 활성화됩니다.</p><div class="limit-box"><b>현재 DEMO에서는 비활성</b><br/>필요 숫자와 산식 검증이 완료되기 전에는 계산 결과를 만들지 않습니다.</div></section>
+  <section class="card s-card"><div class="level-label">LEVEL C · 공개정보 한계</div><h3>품질보증충당부채</h3><p class="desc">세부 충당률과 미래 Claim 발생률이 공개되지 않았습니다.</p><div class="limit-box"><b>정량 Stress Test를 제공하기 위한 공개정보가 부족합니다.</b><br/>관련 금액과 판단근거만 표시하고 Slider를 생성하지 않습니다.</div><button class="detail-btn" data-estimate="warranty" style="margin-top:12px">판단 근거 보기</button></section></div>`;
+}
+
+function peerViewLive(){
+  if(!state.data.estimates.length){
+    return companyHero()+`<div class="view-title"><h2>Peer 비교</h2><p>회계추정 분석이 완료된 기업만 동일 기준으로 비교합니다.</p></div><section class="card peer-card"><span class="badge limit">분석 대기</span><h3>${esc(state.data.company.name)}</h3><p>DART 공시 수집은 완료됐습니다. Estimate Discovery와 숫자 검증이 끝나면 비교 기능이 활성화됩니다.</p></section>`;
+  }
+  return companyHero()+`<div class="view-title"><h2>Peer 비교</h2><p>동일 스키마로 정규화된 기업만 비교하며, 이용자가 임의 수치를 직접 입력하지 않습니다.</p></div><div class="peer-grid"><section class="card peer-card"><span class="badge disclosed">기준 기업</span><h3>${esc(state.data.company.name)} · ${esc(state.data.company.ticker)}</h3><p>${state.data.estimates.length}개 회계추정 항목이 분석 스키마로 정리되어 있습니다.</p></section><section class="card peer-card"><span class="badge limit">분석 데이터 필요</span><h3>비교기업을 추가하세요</h3><p>DART 수집과 분석 엔진이 연결된 기업만 비교합니다.</p><button class="detail-btn" data-toast="비교기업 분석이 완료된 뒤 활성화됩니다.">비교기업 추가</button></section></div>`;
+}
+
+function bindLive(){
+  const analyze=async query=>{
+    state.query=query;
+    state.loading=true;
+    render();
+    try{
+      const [data]=await Promise.all([runEstimateMap(query),new Promise(resolve=>setTimeout(resolve,650))]);
+      state.data=data;
+      state.view='overview';
+      state.loading=false;
+      render();
+      toast(`${data.company.name} 분석 데이터를 불러왔습니다.`);
+    }catch(error){
+      state.loading=false;
+      state.data=null;
+      render();
+      toast(error.message);
+    }
+  };
+  document.querySelector('#search-form').onsubmit=event=>{event.preventDefault();analyze(document.querySelector('#company-input').value)};
+  const landingForm=document.querySelector('#landing-form');
+  if(landingForm)landingForm.onsubmit=event=>{event.preventDefault();analyze(document.querySelector('#landing-input').value)};
+  document.querySelectorAll('[data-view]').forEach(element=>element.onclick=()=>{state.view=element.dataset.view;render()});
+  document.querySelectorAll('[data-filter]').forEach(element=>element.onclick=()=>{state.filter=element.dataset.filter;render()});
+  document.querySelectorAll('[data-estimate]').forEach(element=>element.onclick=()=>openEstimate(element.dataset.estimate));
+  document.querySelectorAll('[data-evidence]').forEach(element=>element.onclick=()=>openEvidence(element.dataset.evidence));
+  document.querySelectorAll('[data-scenario]').forEach(element=>element.onclick=()=>{state.scenario=element.dataset.scenario;render()});
+  document.querySelectorAll('[data-toast]').forEach(element=>element.onclick=()=>toast(element.dataset.toast));
+  document.querySelectorAll('[data-demo]').forEach(element=>element.onclick=()=>analyze('051910'));
+  document.querySelector('#backdrop').onclick=closeDrawer;
+  document.querySelectorAll('[data-tooltip]').forEach(element=>{
+    element.onmouseenter=()=>{
+      const rect=element.getBoundingClientRect();
+      const tip=document.createElement('div');
+      tip.className='tooltip';
+      tip.id='tooltip';
+      tip.textContent=element.dataset.tooltip;
+      tip.style.left=Math.min(rect.left,window.innerWidth-360)+'px';
+      tip.style.top=(rect.bottom+8)+'px';
+      document.body.appendChild(tip);
+    };
+    element.onmouseleave=()=>document.querySelector('#tooltip')?.remove();
+  });
+}
